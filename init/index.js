@@ -10,13 +10,13 @@ main().then(()=>{
     console.log(err);
  });
  async function main() {
-    await mongoose.connect("mongodb://127.0.0.1:27017/wanderLust");
+    await mongoose.connect("mongodb+srv://NiteshKumar:NiteshKumar@wander-lust.ao2dr.mongodb.net/wanderLust?retryWrites=true&w=majority&appName=wander-lust");
   
 }
 
 const initDB = async () =>{
     await Listing.deleteMany({});
-    initData.data = initData.data.map((obj)=> ({...obj, owner: "66aefc586f01c3d53072c63c" }));
+    initData.data = initData.data.map((obj)=> ({...obj, owner: "6798ba783ec0198345669521" }));
     await Listing.insertMany(initData.data);
     console.log("data was initialized");
 }

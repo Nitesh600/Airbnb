@@ -111,6 +111,7 @@ body{
 #filters{
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
   }
   .filter{
     text-align: center;
@@ -123,4 +124,23 @@ body{
   }
   .filter p{
     font-size: 0.8rem;
+  }
+
+  /* MAP styling */
+
+  #map { 
+    height: 400px;
+    width: 80vh;
+  }
+  .tax-info{
+    display: none;
+  }
+  .tax-toggle {
+    border: 1px solid black;
+    border-radius: 1rem;
+    height: 3rem;
+    padding: 1rem;
+    margin-left: 2rem;
+    display: flex;
+    align-items: center;
   }

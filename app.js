@@ -1,19 +1,19 @@
- require("dotenv").config();
+ if(process.env.NODE_ENV != "production"){
+   require("dotenv").config();
+ }
 const express = require("express");
 const app = express();
 const port  = 3000;
  const mongoose = require("mongoose");
- const Listing = require("./models/listing.js");
  const path = require("path");
  const methodOverride = require("method-override");
  const ejsMate = require("ejs-mate");
-const wrapAsync = require("./utils/Wrapasync.js");
 const ExpressError = require("./utils/ExpressError.js");
 const { title } = require("process");
-const {listingSchema, reviewSchema} = require("./schema.js");
-const Review = require("./models/review.js");
 const listingRouter = require("./routes/listing.js");
+const reviewRouter = require("./routes/review.js");
 const session = require("express-session");
+const MongoStore = require('connect-mongo');
 const flash = require("connect-flash");
 const passport = require("passport");
 const LocalStrategy = require("passport-local");
@@ -41,9 +41,22 @@ app.set("views", path.join(__dirname, "/views/listings"));
 app.use(methodOverride("_method"));
 app.engine("ejs", ejsMate);
 app.use(express.static(path.join(__dirname,"/public")));
+ 
+const store = MongoStore.create({
+   mongoUrl: dbUrl,
+   crypto: {
+     secret: process.env.SECRET
+   },
+   touchAfter: 24 * 3600,
+  });
+ 
+  store.on("error", ()=>{
+   console.log("ERROR in mongo Session store", err);
+  });
 
 const sessionOptions = {
-   secret: env.process.SECRET,
+   store,
+   secret: process.env.SECRET,
    resave: false,
    saveUninitialized: true,
    cookie: {
@@ -59,17 +72,7 @@ const sessionOptions = {
 // });
 
 
-const validateReview = (req,res,next)=>{
-   let {error} = reviewSchema.validate(req.body);
-   if(error){
-      let errMsg = error.details.map((el)=> el.message).join(",");
-    throw new ExpressError(400, errMsg);
-   }else{
-      next();
-   }
 
-   
-}
 app.use(session(sessionOptions));
 app.use(flash());
 
@@ -87,30 +90,8 @@ app.use((req,res,next)=>{
    next();
 });
 
-// Post   Review Route
-app.post("/listings/:id/reviews",validateReview, wrapAsync(async(req,res)=>{
-let listing = await Listing.findById(req.params.id);
-  let newReview = new Review(req.body.review);
-   
- listing.review.push(newReview);
- 
-  await newReview.save();
-  await listing.save();
-  req.flash("success", "New Review Created!");
-   
-   res.redirect(`/listings/${listing._id}`);
-}));
-
-// app.get("/demouser", async(req,res)=>{
-//    const fakeUser = new User({
-//       email: "student@gmail.com",
-//       username: "delta-student",
-//    });
-//      let registeredUser = await User.register(fakeUser, "helloworld");
-//      res.send(registeredUser);
-// });
-
 app.use("/listings", listingRouter);
+app.use("/listings/:id/reviews", reviewRouter);
 app.use("/", userRouter);
 
 
